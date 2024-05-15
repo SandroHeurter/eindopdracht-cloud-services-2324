@@ -1,0 +1,24 @@
+{
+  "name": "competition",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "dev": "nodemon -r dotenv/config app.js --legacy-watch",
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^2.0.22"
+  },
+  "dependencies": {
+    "mongoose": "^7.0.3"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}

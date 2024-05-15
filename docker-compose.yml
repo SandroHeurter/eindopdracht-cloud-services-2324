@@ -1,0 +1,106 @@
+version: '1'
+name: photo-prestiges
+services:
+  messagebroker:
+    container_name: messagebroker
+    image: rabbitmq:latest
+    networks:
+      - main-net
+
+  backend:
+    container_name: backend
+    build: 
+      context: ./backend
+      dockerfile: dockerfile
+    command: npm run dev
+    ports: 
+      - 3000:3000
+    environment:
+      - PORT=3000
+      - MESSAGE_QUEUE=amqp://messagebroker
+    volumes:
+      - "./backend:/usr/src/app/"
+    networks:
+      - main-net
+
+  auth:
+    container_name: auth-service
+    build: 
+      context: ./auth
+      dockerfile: dockerfile
+    command: npm run dev
+    ports: 
+      - 3020:3020
+    environment:
+      - PORT=3020
+      - MONGO_URL=mongodb://admin:root1234@authdb:27017
+      - MESSAGE_QUEUE=amqp://messagebroker
+    depends_on:
+      - authdb
+    volumes:
+      - "./auth:/usr/src/app/"
+    networks:
+      - main-net
+      - auth-net
+
+  competition:
+    container_name: competition-service
+    build: 
+      context: ./competition
+      dockerfile: dockerfile
+    command: npm run dev
+    ports: 
+      - 3010:3010
+    environment:
+      - PORT=3010
+      - MONGO_URL=mongodb://admin:root1234@competitiondb:27017
+      - MESSAGE_QUEUE=amqp://messagebroker
+    depends_on:
+      - competitiondb
+    volumes:
+      - "./competition:/usr/src/app/"
+    networks:
+      - main-net
+      - competition-net
+
+  authdb:
+    container_name: authdb
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=root1234
+    ports:
+      - 27100:27017
+    volumes:
+      - auth_data:/data/db
+    networks:
+      - auth-net
+      - main-net
+
+  competitiondb:
+    container_name: competitiondb
+    restart: always
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=root1234
+    ports:
+      - 27200:27017
+    volumes:
+      - competition_data:/data/db
+    networks:
+      - competition-net
+      - main-net
+
+volumes:
+  auth_data:
+  competition_data:
+
+networks:
+  main-net:
+    driver: bridge
+  auth-net:
+    driver: bridge 
+  competition-net:
+    driver: bridge

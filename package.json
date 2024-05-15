@@ -1,0 +1,19 @@
+{
+  "name": "eindopdracht-cloud-services-2324",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "install-all": "npm install && cd backend && npm install && cd ../competition && npm install && cd ../auth && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SandroHeurter/eindopdracht-cloud-services-2324.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SandroHeurter/eindopdracht-cloud-services-2324/issues"
+  },
+  "homepage": "https://github.com/SandroHeurter/eindopdracht-cloud-services-2324#readme"
+}
