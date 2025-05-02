@@ -5,7 +5,7 @@ const targetSchema = new mongoose.Schema({
   description: { type: String, required: true },
   location: { type: String, required: true },
   deadline: { type: Date, required: true },
-  createdBy: { type: String } 
+  createdBy: { type: String, required: true } // komt uit JWT token (req.user.id)
 }, {
   timestamps: true
 });
