@@ -1,7 +1,6 @@
 {
   "name": "competition",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "jest",
@@ -17,9 +16,12 @@
   },
   "dependencies": {
     "dotenv": "^16.5.0",
-    "mongoose": "^7.0.3"
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.8.7"
   },
   "jest": {
     "testEnvironment": "node"
-  }
+  },
+  "description": ""
 }
