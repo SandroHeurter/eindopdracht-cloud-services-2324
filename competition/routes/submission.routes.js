@@ -2,18 +2,21 @@ const express = require('express');
 const router = express.Router();
 const Submission = require('../models/Submission');
 const authMiddleware = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
-// 📤 Een gebruiker uploadt een foto als deelname aan een target
-router.post('/', authMiddleware, async (req, res) => {
-  const { image, targetId } = req.body;
+// 📤 Upload een bestand als submission (multipart/form-data)
+router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
+  const { targetId } = req.body;
 
-  if (!image || !targetId) {
-    return res.status(400).json({ message: 'Image en targetId zijn verplicht.' });
+  if (!req.file || !targetId) {
+    return res.status(400).json({ message: 'Afbeelding en targetId zijn verplicht.' });
   }
 
   try {
+    const imageUrl = `/uploads/${req.file.filename}`;
+
     const newSubmission = new Submission({
-      image,
+      image: imageUrl,
       targetId,
       userId: req.user.id
     });

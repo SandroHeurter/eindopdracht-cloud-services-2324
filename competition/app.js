@@ -2,12 +2,16 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const submissionRouter = require('./routes/submission.routes');
+const path = require('path');
+
 
 const app = express();
 const PORT = process.env.PORT || 3010;
 
 // Middleware
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // MongoDB connectie
 mongoose.connect(process.env.MONGO_URL, {
