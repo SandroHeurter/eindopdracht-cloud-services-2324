@@ -1,10 +1,16 @@
-// competition/models/Target.js
 const mongoose = require('mongoose');
 
 const targetSchema = new mongoose.Schema({
-  // vul de fields in zoals je zelf wilt!
-  name: String,
-  // eventueel andere velden
+  title: String,
+  description: String,
+  location: String,
+  deadline: Date,
+  createdBy: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }
+  
 });
 
 module.exports = mongoose.model('Target', targetSchema);
