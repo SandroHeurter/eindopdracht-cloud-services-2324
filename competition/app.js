@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const submissionRouter = require('./routes/submission.routes');
 const path = require('path');
+const targetRoutes = require('./routes/target.routes');
 
 
 const app = express();
@@ -10,6 +11,7 @@ const PORT = process.env.PORT || 3010;
 
 // Middleware
 app.use(express.json());
+app.use('/api/targets', targetRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
