@@ -93,6 +93,23 @@ services:
       - competition-net
       - main-net
 
+  mail:
+    container_name: mail-service
+    build:
+      context: ./mail-service
+      dockerfile: dockerfile
+    command: npm run dev
+    environment:
+      - RABBIT_URL=amqp://messagebroker
+      - QUEUE_NAME=register_mail
+    depends_on:
+      - messagebroker
+   # volumes:
+    #  - ./mail-service:/usr/src/app/
+    networks:
+      - main-net
+
+
 volumes:
   auth_data:
   competition_data:
