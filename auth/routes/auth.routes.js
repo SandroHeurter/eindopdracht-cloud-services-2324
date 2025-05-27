@@ -3,6 +3,24 @@ const router = express.Router();
 const User = require('../model/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const amqp = require('amqplib');
+
+// 👇 Helperfunctie voor mail-service aanroepen via RabbitMQ
+async function stuurRegistratieMail(email, password) {
+  try {
+    const connection = await amqp.connect(process.env.MESSAGE_QUEUE || 'amqp://messagebroker');
+    const channel = await connection.createChannel();
+    await channel.assertQueue('register_mail', { durable: false });
+    const msg = JSON.stringify({ email, password });
+    channel.sendToQueue('register_mail', Buffer.from(msg));
+    setTimeout(() => {
+      connection.close();
+    }, 500);
+    console.log('Mail-bericht naar RabbitMQ verstuurd:', email);
+  } catch (err) {
+    console.error('Fout bij versturen mail naar RabbitMQ:', err);
+  }
+}
 
 // ✅ Gebruiker registreren
 router.post('/register', async (req, res) => {
@@ -21,6 +39,9 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ email, password: hashedPassword });
     await user.save();
+
+    // Stuur mail naar RabbitMQ!
+    stuurRegistratieMail(email, password);
 
     res.status(201).json({ message: 'Gebruiker geregistreerd!', email: user.email });
   } catch (err) {

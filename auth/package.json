@@ -17,7 +17,7 @@
     "nodemon": "^2.0.22"
   },
   "dependencies": {
-    "amqplib": "^0.10.3",
+    "amqplib": "^0.10.8",
     "bcryptjs": "^3.0.2",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
