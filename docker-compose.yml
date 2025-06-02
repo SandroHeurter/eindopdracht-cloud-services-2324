@@ -93,6 +93,20 @@ services:
       - competition-net
       - main-net
 
+  scoredb:
+    image: mongo
+    container_name: scoredb
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=root1234
+    ports:
+      - 27019:27017 
+    volumes:
+      - scoredbdata:/data/db
+    networks:
+      - main-net
+
   mail:
     container_name: mail-service
     build:
@@ -109,10 +123,26 @@ services:
     networks:
       - main-net
 
+  score:
+    container_name: score-service
+    build:
+      context: ./score-service
+      dockerfile: dockerfile
+    command: npm run dev
+    ports:
+      - 3030:3030
+    environment:
+      - PORT=3030
+    networks:
+      - main-net
+    volumes:
+      - ./score-service:/usr/src/app/
+
 
 volumes:
   auth_data:
   competition_data:
+  scoredbdata:
 
 networks:
   main-net:

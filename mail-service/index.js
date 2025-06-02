@@ -21,6 +21,8 @@ async function start() {
     });
   } catch (err) {
     console.error('❌ Fout bij verbinden met RabbitMQ:', err.message);
+    // Retry na 5 seconden
+    setTimeout(start, 5000);
   }
 }
 
