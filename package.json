@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/SandroHeurter/eindopdracht-cloud-services-2324/issues"
   },
-  "homepage": "https://github.com/SandroHeurter/eindopdracht-cloud-services-2324#readme"
+  "homepage": "https://github.com/SandroHeurter/eindopdracht-cloud-services-2324#readme",
+  "dependencies": {
+    "multer": "^2.0.0"
+  }
 }

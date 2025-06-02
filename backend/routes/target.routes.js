@@ -1,14 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const Target = require('../models/Target');
-const authMiddleware = require('../middleware/auth'); // Zorg dat dit pad klopt
+const authMiddleware = require('../middleware/auth');
+const upload = require('../middleware/upload'); // multer instance
+const hashImage = require('../middleware/hashImage'); // zie vorige antwoorden!
+const fs = require('fs');
 
-// Target aanmaken (alleen voor ingelogde gebruikers)
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, res) => {
   const { title, description, location, deadline } = req.body;
 
-  if (!title || !description || !location || !deadline) {
+  if (
+    !title?.trim() ||
+    !description?.trim() ||
+    !location?.trim() ||
+    !deadline?.trim() ||
+    !req.file
+  ) {
     return res.status(400).json({ message: 'Alle velden zijn verplicht.' });
+  }
+
+  const imageUrl = `/uploads/${req.file.filename}`;
+  const imageHash = req.imageHash;
+
+  // Optioneel: duplicate-check
+  const exists = await Target.findOne({ imageHash });
+  if (exists) {
+    fs.unlinkSync(req.file.path);
+    return res.status(400).json({ message: 'Er bestaat al een target met exact deze afbeelding.' });
   }
 
   try {
@@ -17,7 +35,9 @@ router.post('/', authMiddleware, async (req, res) => {
       description,
       location,
       deadline,
-      createdBy: req.user.id // ⬅️ gekoppeld aan ingelogde gebruiker
+      image: imageUrl,
+      imageHash,
+      createdBy: req.user.id
     });
     await newTarget.save();
 
@@ -28,17 +48,6 @@ router.post('/', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('❌ Fout bij opslaan target:', error);
     res.status(500).json({ message: 'Fout bij het opslaan van de target.' });
-  }
-});
-
-// Alle targets ophalen
-router.get('/', async (req, res) => {
-  try {
-    const targets = await Target.find();
-    res.status(200).json(targets);
-  } catch (error) {
-    console.error('❌ Fout bij ophalen targets:', error);
-    res.status(500).json({ message: 'Fout bij het ophalen van targets.' });
   }
 });
 

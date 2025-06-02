@@ -11,6 +11,7 @@ var usersRouter = require('./routes/users');
 var targetRouter = require('./routes/target.routes');
 
 var app = express();
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ⬇️ MongoDB verbinden
 mongoose.connect(process.env.MONGO_URL, {
