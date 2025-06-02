@@ -3,11 +3,12 @@ const router = express.Router();
 const Submission = require('../models/Submission');
 const authMiddleware = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const hashImage = require('../middleware/hashImage'); // <-- importeren!
 const fs = require('fs');
 const path = require('path');
 
 // 📤 Upload een bestand als submission (multipart/form-data)
-router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
+router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, res) => {
   const { targetId } = req.body;
 
   if (!req.file || !targetId) {
@@ -16,9 +17,24 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
 
   try {
     const imageUrl = `/uploads/${req.file.filename}`;
+    const imageHash = req.imageHash;
+
+    // Check op DUBBELE hash voor deze gebruiker/target!
+    const exists = await Submission.findOne({
+      targetId,
+      userId: req.user.id,
+      imageHash
+    });
+
+    if (exists) {
+      // Verwijder het bestand meteen
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: 'Je hebt deze afbeelding al geüpload voor deze target.' });
+    }
 
     const newSubmission = new Submission({
       image: imageUrl,
+      imageHash,
       targetId,
       userId: req.user.id
     });
@@ -44,21 +60,15 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Submission niet gevonden.' });
     }
 
-    // Alleen de eigenaar mag verwijderen
     if (submission.userId.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Je mag alleen je eigen submissions verwijderen.' });
     }
 
-    // Bestandsverwijdering
-    // submission.image is bijvoorbeeld "/uploads/bestand.jpg"
-    // Je moet __dirname + '..' + submission.image gebruiken om het juiste pad te krijgen
     const imagePath = path.join(__dirname, '..', submission.image);
 
-    // Check of het bestand bestaat
     if (fs.existsSync(imagePath)) {
       fs.unlinkSync(imagePath);
     } else {
-      // Je hoeft niet te falen als het bestand er niet meer is, maar dit kun je loggen
       console.warn(`Bestand bestaat niet meer: ${imagePath}`);
     }
 

@@ -4,7 +4,11 @@ const submissionSchema = new mongoose.Schema({
   image: {
     type: String,
     required: true,
-    // Hier kun je in de toekomst valideren of het een geldige base64 string of URL is
+  },
+  imageHash: {
+    type: String,
+    required: true,
+    index: true,
   },
   targetId: {
     type: mongoose.Schema.Types.ObjectId,

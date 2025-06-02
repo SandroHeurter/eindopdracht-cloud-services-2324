@@ -1,16 +1,15 @@
 const mongoose = require('mongoose');
 
 const targetSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  location: String,
-  deadline: Date,
+  title: { type: String, required: true },
+  description: { type: String },
+  location: { type: String },
+  deadline: { type: Date },
   createdBy: { 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   }
-  
 });
 
 module.exports = mongoose.model('Target', targetSchema);

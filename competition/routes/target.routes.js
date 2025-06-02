@@ -9,13 +9,15 @@ const path = require('path');
 // 🆕 Maak een target aan (met userId)
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { name } = req.body;
+    const { title, description, location, deadline } = req.body;
 
-    // Sla userId op als eigenaar
+    // Sla userId op als eigenaar (createdBy)
     const newTarget = new Target({
-      name,
-      userId: req.user.id // Belangrijk: userId moet bestaan in je Target-model!
-      // eventueel andere velden
+      title,
+      description,
+      location,
+      deadline,
+      createdBy: req.user.id
     });
 
     await newTarget.save();
@@ -68,6 +70,5 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Fout bij verwijderen van de target.' });
   }
 });
-
 
 module.exports = router;
