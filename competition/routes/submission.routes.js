@@ -3,9 +3,10 @@ const router = express.Router();
 const Submission = require('../models/Submission');
 const authMiddleware = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const hashImage = require('../middleware/hashImage'); // <-- importeren!
+const hashImage = require('../middleware/hashImage');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios'); // <-- NIEUW
 
 // 📤 Upload een bestand als submission (multipart/form-data)
 router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, res) => {
@@ -19,6 +20,29 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
     const imageUrl = `/uploads/${req.file.filename}`;
     const imageHash = req.imageHash;
 
+    // 1. Ophalen van de target-imageHash via backend-service
+    // Gebruik servicenaam "backend" binnen Docker, of "localhost" lokaal testen
+    const backendUrl = process.env.BACKEND_URL || 'http://backend:3000';
+    let target;
+    try {
+      const resp = await axios.get(`${backendUrl}/api/targets/${targetId}`);
+      target = resp.data;
+    } catch (err) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: 'Kan target niet vinden of backend niet bereikbaar.' });
+    }
+
+    if (!target || !target.imageHash) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: 'Target heeft geen afbeelding (imageHash ontbreekt).' });
+    }
+
+    // 2. Vergelijk hashes: exacte foto is niet toegestaan
+    if (target.imageHash === imageHash) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: 'Je mag niet exact dezelfde afbeelding als het target uploaden.' });
+    }
+
     // Check op DUBBELE hash voor deze gebruiker/target!
     const exists = await Submission.findOne({
       targetId,
@@ -27,7 +51,6 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
     });
 
     if (exists) {
-      // Verwijder het bestand meteen
       fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: 'Je hebt deze afbeelding al geüpload voor deze target.' });
     }

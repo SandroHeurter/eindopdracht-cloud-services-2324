@@ -6,6 +6,7 @@ const upload = require('../middleware/upload'); // multer instance
 const hashImage = require('../middleware/hashImage'); // zie vorige antwoorden!
 const fs = require('fs');
 
+// Target aanmaken
 router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, res) => {
   const { title, description, location, deadline } = req.body;
 
@@ -48,6 +49,17 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
   } catch (error) {
     console.error('❌ Fout bij opslaan target:', error);
     res.status(500).json({ message: 'Fout bij het opslaan van de target.' });
+  }
+});
+
+// [NIEUW] Target ophalen op ID (voor hash-vergelijking)
+router.get('/:id', async (req, res) => {
+  try {
+    const target = await Target.findById(req.params.id);
+    if (!target) return res.status(404).json({ message: 'Target niet gevonden.' });
+    res.json(target);
+  } catch (err) {
+    res.status(500).json({ message: 'Fout bij ophalen target.' });
   }
 });
 
