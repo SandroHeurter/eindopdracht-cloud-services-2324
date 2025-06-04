@@ -21,7 +21,7 @@ app.use((req, res) => {
 });
 
 // Server starten
-const port = process.env.PORT || 3020;
+const port = process.env.PORT || 3030;
 app.listen(port, () => {
   console.log(`🚀 Score-service draait op poort ${port}`);
 });
