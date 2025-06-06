@@ -3,7 +3,7 @@ const router = express.Router();
 const Target = require('../models/Target');
 const authMiddleware = require('../middleware/auth');
 const upload = require('../middleware/upload'); // multer instance
-const hashImage = require('../middleware/hashImage'); // zie vorige antwoorden!
+const hashImage = require('../middleware/hashImage');
 const fs = require('fs');
 
 // Target aanmaken
@@ -23,7 +23,6 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
   const imageUrl = `/uploads/${req.file.filename}`;
   const imageHash = req.imageHash;
 
-  // Optioneel: duplicate-check
   const exists = await Target.findOne({ imageHash });
   if (exists) {
     fs.unlinkSync(req.file.path);
@@ -52,7 +51,17 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
   }
 });
 
-// [NIEUW] Target ophalen op ID (voor hash-vergelijking)
+// ✅ Alle targets ophalen
+router.get('/', async (req, res) => {
+  try {
+    const targets = await Target.find();
+    res.json(targets);
+  } catch (err) {
+    res.status(500).json({ message: 'Fout bij ophalen van alle targets.' });
+  }
+});
+
+// Target ophalen op ID
 router.get('/:id', async (req, res) => {
   try {
     const target = await Target.findById(req.params.id);
