@@ -6,7 +6,7 @@ const upload = require('../middleware/upload');
 const hashImage = require('../middleware/hashImage');
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios'); // <-- NIEUW
+const axios = require('axios');
 
 // 📤 Upload een bestand als submission (multipart/form-data)
 router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, res) => {
@@ -20,8 +20,7 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
     const imageUrl = `/uploads/${req.file.filename}`;
     const imageHash = req.imageHash;
 
-    // 1. Ophalen van de target-imageHash via backend-service
-    // Gebruik servicenaam "backend" binnen Docker, of "localhost" lokaal testen
+    // 1. Ophalen van de target via backend-service
     const backendUrl = process.env.BACKEND_URL || 'http://backend:3000';
     let target;
     try {
@@ -37,13 +36,20 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
       return res.status(400).json({ message: 'Target heeft geen afbeelding (imageHash ontbreekt).' });
     }
 
+    // ===>>> DEADLINE CHECK HIER!
+    const deadline = new Date(target.deadline);
+    if (Date.now() > deadline.getTime()) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: 'De deadline voor deze wedstrijd is verstreken. Je kunt niet meer inzenden.' });
+    }
+
     // 2. Vergelijk hashes: exacte foto is niet toegestaan
     if (target.imageHash === imageHash) {
       fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: 'Je mag niet exact dezelfde afbeelding als het target uploaden.' });
     }
 
-    // Check op DUBBELE hash voor deze gebruiker/target!
+    // 3. Check op DUBBELE hash voor deze gebruiker/target!
     const exists = await Submission.findOne({
       targetId,
       userId: req.user.id,
