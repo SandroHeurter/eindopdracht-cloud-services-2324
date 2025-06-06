@@ -3,9 +3,21 @@ name: photo-prestiges
 services:
   messagebroker:
     container_name: messagebroker
-    image: rabbitmq:latest
+    image: rabbitmq:3.13-management
     networks:
       - main-net
+
+
+  clock:
+    build: ./clock-service
+    ports:
+      - "3040:3040"
+    depends_on:
+      - competitiondb
+      - messagebroker
+      - backend
+    networks:
+    - main-net  
 
   backend:
     container_name: backend

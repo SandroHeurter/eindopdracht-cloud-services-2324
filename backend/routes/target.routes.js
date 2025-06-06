@@ -5,6 +5,7 @@ const authMiddleware = require('../middleware/auth');
 const upload = require('../middleware/upload'); // multer instance
 const hashImage = require('../middleware/hashImage');
 const fs = require('fs');
+const amqp = require('amqplib');
 
 // Target aanmaken
 router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, res) => {
@@ -30,6 +31,7 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
   }
 
   try {
+    // Sla target op met standaard isClosed: false
     const newTarget = new Target({
       title,
       description,
@@ -37,9 +39,23 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
       deadline,
       image: imageUrl,
       imageHash,
-      createdBy: req.user.id
+      createdBy: req.user.id,
+      isClosed: false, // <-- belangrijk!
     });
     await newTarget.save();
+
+    // Stuur target naar RabbitMQ voor clock-service
+    (async () => {
+      try {
+        const conn = await amqp.connect(process.env.MESSAGE_QUEUE || 'amqp://messagebroker');
+        const channel = await conn.createChannel();
+        await channel.assertQueue('target_deadlines', { durable: true });
+        channel.sendToQueue('target_deadlines', Buffer.from(JSON.stringify(newTarget)));
+        setTimeout(() => { conn.close(); }, 500);
+      } catch (err) {
+        console.error('❌ Kan niet naar RabbitMQ sturen:', err.message);
+      }
+    })();
 
     res.status(201).json({
       message: 'Target succesvol aangemaakt',
@@ -69,6 +85,21 @@ router.get('/:id', async (req, res) => {
     res.json(target);
   } catch (err) {
     res.status(500).json({ message: 'Fout bij ophalen target.' });
+  }
+});
+
+// PATCH endpoint om target te sluiten (voor clock-service)
+router.patch('/:id/close', async (req, res) => {
+  try {
+    const target = await Target.findByIdAndUpdate(
+      req.params.id,
+      { isClosed: true },
+      { new: true }
+    );
+    if (!target) return res.status(404).json({ message: 'Target niet gevonden.' });
+    res.json({ message: 'Target is gesloten.', target });
+  } catch (err) {
+    res.status(500).json({ message: 'Fout bij sluiten van target.' });
   }
 });
 

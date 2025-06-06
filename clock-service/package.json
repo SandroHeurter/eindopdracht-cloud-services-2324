@@ -1,0 +1,9 @@
+{
+  "name": "clock-service",
+  "version": "1.0.0",
+  "main": "app.js",
+  "dependencies": {
+    "amqplib": "^0.10.0",
+    "axios": "^1.6.0"
+  }
+}

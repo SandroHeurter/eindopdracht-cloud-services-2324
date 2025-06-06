@@ -5,9 +5,10 @@ const targetSchema = new mongoose.Schema({
   description: { type: String, required: true },
   location: { type: String, required: true },
   deadline: { type: Date, required: true },
-  image: { type: String, required: true },      // <--- toegevoegd!
-  imageHash: { type: String, required: true, index: true }, // <--- toegevoegd!
-  createdBy: { type: String, required: true } // of type: mongoose.Schema.Types.ObjectId als je dat elders gebruikt
+  image: { type: String, required: true },
+  imageHash: { type: String, required: true, index: true },
+  createdBy: { type: String, required: true }, 
+  isClosed: { type: Boolean, default: false }   
 }, {
   timestamps: true
 });
