@@ -9,7 +9,8 @@ const targetSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
+  createdByEmail: { type: String, required: true }
 });
 
 module.exports = mongoose.model('Target', targetSchema);

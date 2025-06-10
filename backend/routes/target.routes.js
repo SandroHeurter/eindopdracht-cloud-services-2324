@@ -40,7 +40,8 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
       image: imageUrl,
       imageHash,
       createdBy: req.user.id,
-      isClosed: false, // <-- belangrijk!
+      createdByEmail: req.user.email, 
+      isClosed: false, 
     });
     await newTarget.save();
 
@@ -90,6 +91,8 @@ router.get('/:id', async (req, res) => {
 
 // PATCH endpoint om target te sluiten (voor clock-service)
 router.patch('/:id/close', async (req, res) => {
+    console.log('Target ID ontvangen:', req.params.id); // 👈 debug-log
+
   try {
     const target = await Target.findByIdAndUpdate(
       req.params.id,

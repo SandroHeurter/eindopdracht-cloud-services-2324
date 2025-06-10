@@ -65,7 +65,8 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
       image: imageUrl,
       imageHash,
       targetId,
-      userId: req.user.id
+      userId: req.user.id,
+      userEmail: req.user.email,
     });
 
     await newSubmission.save();
