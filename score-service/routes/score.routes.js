@@ -19,23 +19,24 @@ router.post('/', async (req, res) => {
     // 2. Score berekenen op basis van label-overlap
     const score = calculateScore(labelsTarget, labelsSubmission);
 
-    // 3. Opslaan
-    const newScore = new Score({
-      userId,
-      competitionId,
-      score,
-      labelsTarget,
-      labelsSubmission,
-    });
-
-    await newScore.save();
+    // 3. Upsert (insert of update bestaande score)
+    const updatedScore = await Score.findOneAndUpdate(
+      { userId, competitionId },
+      {
+        score,
+        labelsTarget,
+        labelsSubmission,
+        date: new Date()
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     // 4. Teruggeven
     res.status(201).json({
-      score: newScore.score,
+      score: updatedScore.score,
       labelsTarget,
       labelsSubmission,
-      _id: newScore._id
+      _id: updatedScore._id
     });
   } catch (err) {
     console.error(err);
@@ -43,11 +44,14 @@ router.post('/', async (req, res) => {
   }
 });
 
+
 // Scores ophalen (optioneel filter)
 router.get('/', async (req, res) => {
   try {
-    const { competitionId } = req.query;
-    const query = competitionId ? { competitionId } : {};
+    const { competitionId, userId } = req.query;
+    const query = {};
+    if (competitionId) query.competitionId = competitionId;
+    if (userId) query.userId = userId;
     const scores = await Score.find(query);
     res.json(scores);
   } catch (err) {

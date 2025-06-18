@@ -10,9 +10,9 @@ async function stuurRegistratieMail(email, password) {
   try {
     const connection = await amqp.connect(process.env.MESSAGE_QUEUE || 'amqp://messagebroker');
     const channel = await connection.createChannel();
-    await channel.assertQueue('register_mail', { durable: false });
+    await channel.assertQueue('mailQueue', { durable: false });
     const msg = JSON.stringify({ email, password });
-    channel.sendToQueue('register_mail', Buffer.from(msg));
+    channel.sendToQueue('mailQueue', Buffer.from(msg));
     setTimeout(() => {
       connection.close();
     }, 500);

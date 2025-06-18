@@ -8,5 +8,5 @@ const scoreSchema = new mongoose.Schema({
   labelsSubmission: [String],  
   date: { type: Date, default: Date.now }
 });
-
+scoreSchema.index({ userId: 1, competitionId: 1 }, { unique: true }); 
 module.exports = mongoose.model('Score', scoreSchema);

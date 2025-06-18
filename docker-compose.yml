@@ -127,7 +127,7 @@ services:
     command: npm run dev
     environment:
       - RABBIT_URL=amqp://messagebroker
-      - QUEUE_NAME=register_mail
+      - QUEUE_NAME=mailQueue
     depends_on:
       - messagebroker
    # volumes:

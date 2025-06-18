@@ -61,6 +61,7 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
       return res.status(400).json({ message: 'Je hebt deze afbeelding al geüpload voor deze target.' });
     }
 
+    // 4. Sla submission op
     const newSubmission = new Submission({
       image: imageUrl,
       imageHash,
@@ -71,6 +72,18 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
 
     await newSubmission.save();
 
+    // 5. Score genereren in score-service (POST)
+    try {
+      await axios.post('http://score:3030/api/score', {
+        userId: req.user.id,
+        competitionId: targetId,
+        targetImageUrl: target.image,
+        submissionImageUrl: imageUrl
+      });
+    } catch (scoreErr) {
+      console.warn('⚠️ Score-service niet bereikbaar of score genereren mislukt:', scoreErr.message);
+    }
+
     res.status(201).json({
       message: 'Deelname succesvol opgeslagen.',
       submission: newSubmission
@@ -78,6 +91,18 @@ router.post('/', authMiddleware, upload.single('image'), hashImage, async (req, 
   } catch (error) {
     console.error('❌ Fout bij opslaan submission:', error);
     res.status(500).json({ message: 'Fout bij het opslaan van de deelname.' });
+  }
+});
+
+// ✅ Submissions ophalen bij een target
+router.get('/', async (req, res) => {
+  try {
+    const { targetId } = req.query;
+    const query = targetId ? { targetId } : {};
+    const submissions = await Submission.find(query);
+    res.json(submissions);
+  } catch (err) {
+    res.status(500).json({ message: 'Fout bij ophalen van de submissions.' });
   }
 });
 

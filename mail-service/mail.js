@@ -10,15 +10,14 @@ const transporter = nodemailer.createTransport({
 });
 
 module.exports = async function handleMail(data) {
-
-  const username = data.username || data.email;
-
   const mailOptions = {
     from: `"Photo Prestiges" <${process.env.GMAIL_USER}>`,
     to: data.email,
-    subject: 'Bevestiging registratie bij Photo Prestiges',
-    text: `Welkom bij Photo Prestiges!\n\nHier zijn je inloggegevens:\nGebruikersnaam: ${username}\nWachtwoord: ${data.password}\n\nVeel plezier met speuren!\n\nLet op: Bewaar deze gegevens goed.`
+    subject: data.subject || 'Bericht van Photo Prestiges',
+    text: data.text || 'Je hebt een bericht van Photo Prestiges.'
   };
+  // 👇 Toegevoegde logregel voor debuggen
+  console.log(`Mail wordt verstuurd naar: ${mailOptions.to} | Subject: ${mailOptions.subject}`);
 
   try {
     await transporter.sendMail(mailOptions);
@@ -27,3 +26,4 @@ module.exports = async function handleMail(data) {
     console.error('❌ Fout bij verzenden e-mail:', err);
   }
 };
+
