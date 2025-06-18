@@ -11,8 +11,21 @@ async function stuurRegistratieMail(email, password) {
     const connection = await amqp.connect(process.env.MESSAGE_QUEUE || 'amqp://messagebroker');
     const channel = await connection.createChannel();
     await channel.assertQueue('mailQueue', { durable: false });
-    const msg = JSON.stringify({ email, password });
+
+    const subject = 'Bevestiging registratie bij Photo Prestiges';
+    const text = `Welkom bij Photo Prestiges!
+
+    Hier zijn je inloggegevens:
+    Gebruikersnaam: ${email}
+    Wachtwoord: ${password}
+
+    Veel plezier met speuren!
+
+    Let op: Bewaar deze gegevens goed.`;
+
+    const msg = JSON.stringify({ email, subject, text });
     channel.sendToQueue('mailQueue', Buffer.from(msg));
+    
     setTimeout(() => {
       connection.close();
     }, 500);
